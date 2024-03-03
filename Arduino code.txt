@@ -1,0 +1,153 @@
+// Pin for increase button (external interrupt 0, corresponds to pin 2 on Arduino Uno)
+const int increaseButtonPin = 2;
+
+// Pin for decrease button (external interrupt 1, corresponds to pin 3 on Arduino Uno)
+const int decreaseButtonPin = 3;
+
+
+//CD4543 pinout
+
+int Ph  = 10;      //Phase pin of 4543
+int BL  = 9;     //Blanking pin of 4543
+int LD  = 8;   //Latch Display pin of 4543
+
+int A   = 4;
+int B   = 6;
+int C   = 7;
+int D   = 5;
+
+//ULN2003AN PINS
+
+const int first  = A0;
+const int second = A1;
+const int third   = A2;
+
+//counter value set
+volatile int counter = 0;
+
+void setup()  {
+
+
+  // Declare all the pins as OUTPUT pins
+
+  pinMode(Ph,  OUTPUT);
+  pinMode(BL,  OUTPUT);
+  pinMode(LD, OUTPUT);
+
+  pinMode(A , OUTPUT);
+  pinMode(B , OUTPUT);
+  pinMode(C , OUTPUT); 
+  pinMode(D , OUTPUT);
+
+  pinMode(first ,  OUTPUT);
+  pinMode(second,  OUTPUT);
+  pinMode(third  ,  OUTPUT); 
+  digitalWrite(Ph, LOW);
+
+
+  // Set up the increase button pin as an input and enable the internal pull-up resistor
+  pinMode(increaseButtonPin, INPUT_PULLUP);
+  // Attach the interrupt to the function incrementCount, rising edge
+  attachInterrupt(digitalPinToInterrupt(increaseButtonPin), incrementCount, RISING);
+
+  // Set up the decrease button pin as an input and enable the internal pull-up resistor
+  pinMode(decreaseButtonPin, INPUT_PULLUP);
+  // Attach the interrupt to the function decrementCount, rising edge
+  attachInterrupt(digitalPinToInterrupt(decreaseButtonPin), decrementCount, RISING);
+
+
+
+
+
+}
+
+
+void loop()  {
+
+  int monades=counter%10;   //calculate the last digit of minutes
+  int decades=counter/10;   //calculate the first digit of minutes
+  int hundrends=counter/100;  //calculate the last digit of hours
+  int bcd_decades=decades%10;
+  int bcd_hundrends=hundrends%10;
+
+//DISPLAY COUNTER TO SEVEN SEGMENTS
+digitalWrite(first, LOW);
+
+  //first digit
+
+  
+
+    // Set the BCD values on the corresponding pins
+    digitalWrite(A, (monades & 0x01) >> 0);
+    digitalWrite(B, (monades & 0x02) >> 1);
+    digitalWrite(C, (monades & 0x04) >> 2);
+    digitalWrite(D, (monades & 0x08) >> 3);
+
+    digitalWrite(LD, HIGH);
+    //delay(1); // You may need to adjust this delay depending on your setup
+    digitalWrite(LD, LOW);
+
+    digitalWrite(first, HIGH);
+
+
+    delay(2);
+
+  //second digit
+    digitalWrite(first, LOW);
+
+    
+
+    digitalWrite(A, (bcd_decades & 0x01) >> 0);
+    digitalWrite(B, (bcd_decades & 0x02) >> 1);
+    digitalWrite(C, (bcd_decades & 0x04) >> 2);
+    digitalWrite(D, (bcd_decades & 0x08) >> 3);
+
+    digitalWrite(LD, HIGH);
+    //delay(1);
+    digitalWrite(LD, LOW);
+
+    digitalWrite(second, HIGH);
+
+    delay(2);
+  
+
+  //last digit 
+    digitalWrite(second, LOW);
+
+    
+
+    digitalWrite(A, (bcd_hundrends & 0x01) >> 0);
+    digitalWrite(B, (bcd_hundrends & 0x02) >> 1);
+    digitalWrite(C, (bcd_hundrends & 0x04) >> 2);
+    digitalWrite(D, (bcd_hundrends & 0x08) >> 3);
+
+    digitalWrite(LD, HIGH);
+    //delay(1);
+    digitalWrite(LD, LOW);
+
+  if(hundrends!=0){
+    digitalWrite(third, HIGH);
+
+    delay(2);
+  }
+
+  //first digit of hours
+    digitalWrite(third, LOW);
+    
+
+
+  }
+
+    // Function to increment the count
+  void incrementCount() {
+   counter++;
+   delay(100);
+  }
+
+
+  // Function to decrement the count
+  void decrementCount() {
+   counter--;
+   delay(100);
+  }
+
